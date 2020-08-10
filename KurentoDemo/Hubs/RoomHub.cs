@@ -4,6 +4,7 @@ using Kurento.NET;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Hosting;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace KurentoDemo.Hubs
 {
@@ -36,7 +37,7 @@ namespace KurentoDemo.Hubs
 
         public override async Task OnConnectedAsync()
         {
-
+            Console.WriteLine("OnConnectedAsync");
             var roomSession = await _roomManager.GetRoomSessionAsync(RoomID);
             var userSession = new UserSession()
             {
@@ -68,6 +69,7 @@ namespace KurentoDemo.Hubs
                 {
                     if (selfSession.SendEndPoint == null)
                     {
+                        Console.WriteLine("2. selfSession.SendEndPoint = await _kurento.CreateAsync");
                         selfSession.SendEndPoint = await _kurento.CreateAsync(new WebRtcEndpoint(roomSession.Pipeline));
                         selfSession.SendEndPoint.OnIceCandidate += arg =>
                         {
@@ -82,6 +84,7 @@ namespace KurentoDemo.Hubs
                     {
                         if (otherSession.SendEndPoint == null)
                         {
+                            Console.WriteLine("otherSession.SendEndPoint = await _kurento.CreateAsync");
                             otherSession.SendEndPoint = await _kurento.CreateAsync(new WebRtcEndpoint(roomSession.Pipeline));
                             otherSession.SendEndPoint.OnIceCandidate += arg =>
                             {
@@ -90,6 +93,7 @@ namespace KurentoDemo.Hubs
                         }
                         if (!selfSession.ReceviedEndPoints.TryGetValue(id, out WebRtcEndpoint otherEndPoint))
                         {
+                            Console.WriteLine("otherEndPoint = await _kurento.CreateAsync");
                             otherEndPoint = await _kurento.CreateAsync(new WebRtcEndpoint(roomSession.Pipeline));
                             otherEndPoint.OnIceCandidate += arg =>
                             {
@@ -106,11 +110,13 @@ namespace KurentoDemo.Hubs
         }
         public async Task ProcessCandidateAsync(string id, IceCandidate candidate)
         {
+            Console.WriteLine("ProcessCandidateAsync");
             var endPonit = await GetEndPointAsync(id);
             await endPonit.AddIceCandidateAsync(candidate);
         }
         public async Task ProcessOfferAsync(string id, string offerSDP)
         {
+            Console.WriteLine("ProcessOfferAsync");
             var endPonit = await GetEndPointAsync(id);
             var answerSDP = await endPonit.ProcessOfferAsync(offerSDP);
             Clients.Caller.ProcessAnswer(id, answerSDP);

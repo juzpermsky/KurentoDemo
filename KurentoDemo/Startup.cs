@@ -1,4 +1,5 @@
-﻿using Kurento.NET;
+﻿using System;
+using Kurento.NET;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -6,9 +7,36 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using KurentoDemo.Hubs;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace KurentoDemo
 {
+    
+    public class MyLogger : ILogger
+    {
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            var message = formatter(state, exception);
+
+            if (!string.IsNullOrEmpty(message) || exception != null)
+            {
+                Console.WriteLine($"MyLogger: {message}");
+            }   
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return true;
+        }
+
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return null;
+        }
+    }
+    
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -20,7 +48,10 @@ namespace KurentoDemo
         {
        
             //there is your kms address
-            services.AddSingleton(p => new KurentoClient("ws://127.0.0.1:8888/kurento"));
+
+            // ConsoleLogger consoleLogger = new ConsoleLogger("KurentoClient",(s, level) => true,false);
+            MyLogger consoleLogger = new MyLogger();
+            services.AddSingleton(p => new KurentoClient("ws://hive.ru:8888/kurento", consoleLogger));
             services.AddSingleton<RoomSessionManager>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddSignalR(config =>

@@ -25,6 +25,8 @@ namespace KurentoDemo.Hubs
         {
             if (!_roomSessions.TryGetValue(roomID, out RoomSession roomSession))
             {
+                Console.WriteLine($"RoomId = {roomID}");
+                Console.WriteLine("1. pipeline = await _client.CreateAsync");
                 var pipeline = await _client.CreateAsync(new MediaPipeline());
                 roomSession = new RoomSession()
                 {
